@@ -1,0 +1,23 @@
+{
+	"logo": "logo.png",
+	"main": "index.html",
+	"preload": "preload.js",
+	"name": "intelligent-mock-generator",
+	"version": "1.0.0",
+	"pluginName": "智能Mock生成器",
+	"description": "借助AI的能力，过自然语言描述灵活生成你所需要的Mock数据",
+	"author": "still-soda",
+	"homepage": "https://gitee.com/still-soda",
+	"features": [
+		{
+			"code": "Intelligent Mock Generator",
+			"explain": "通过自然语言描述生成你所需要的Mock数据",
+			"cmds": [
+				"mock（智能Mock生成器）",
+				"智能Mock生成器",
+				"intelligent（智能Mock生成器）",
+				"im（智能Mock生成器）"
+			]
+		}
+	]
+}

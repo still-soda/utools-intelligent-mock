@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar {
+    background: transparent;
+}
+
+::-webkit-scrollbar-track-piece {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    border: none;
+    background: rgba(111, 111, 111, 0.672);
+}
+
+.hide-scrollbar::-webkit-scrollbar-thumb {
+        border: none;
+        background: transparent;
+    }
+
+pre { 
+    font-family: 'Fira Code', monospace; 
+        font-weight: 500;
+}
+
+.code {
+    font-family: 'Fira Code', monospace; 
+}
+
+* {
+  font-family: "Noto Sans SC", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+@supports (font-variation-settings: normal) {
+    pre { 
+        font-family: 'Fira Code VF', monospace; 
+        font-weight: 500;
+    }
+    
+    .code {
+        font-family: 'Fira Code VF', monospace;
+    }
+}
