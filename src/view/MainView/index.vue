@@ -1,7 +1,7 @@
 <template>
     <div class="bg-gray-800 w-full h-full p-3 space-y-3 max-h-screen overflow-y-auto scroll-smooth">
         <!-- DATA -->
-        <inner-container>
+        <s-container>
             <span>数据</span>
             <transition-group name="fade">
                 <form class="relative w-full p-3 bg-gray-800 rounded-xl px-4 has-[input:focus]:ring-2 
@@ -37,9 +37,9 @@
                     <i class="fa fa-plus"></i>
                 </template>
             </s-button>
-        </inner-container>
+        </s-container>
         <!-- COUNT -->
-        <inner-container>
+        <s-container>
             <span>生成数量</span>
             <div class="flex justify-between items-center">
                 <s-button danger @click="count = Math.max(count - 1, 1)">
@@ -59,8 +59,8 @@
                     </template>
                 </s-button>
             </div>
-        </inner-container>
-        <inner-container>
+        </s-container>
+        <s-container>
             <span>生成结果</span>
             <div class="p-4 rounded-xl bg-gray-800 relative hover:ring-yellow-400 ring-transparent ring-2 transition
                 group">
@@ -80,7 +80,7 @@
                 <div v-else>
                     <!-- BUTTONS -->
                     <div class="absolute group-hover:visible invisible transition right-0 top-0 mt-3 mr-3 flex gap-2">
-                        <popover>
+                        <s-popover>
                             <div class="text-xl font-normal text-nowrap w-20 text-center">双击清空</div>
                             <template #trigger>
                                 <div class=" p-2 size-10 rounded-xl flex items-center justify-center bg-gray-600 opacity-65 
@@ -89,8 +89,8 @@
                                     <i class="fa fa-trash absolute"></i>
                                 </div>
                             </template>
-                        </popover>
-                        <popover>
+                        </s-popover>
+                        <s-popover>
                             <div class="text-xl font-normal text-nowrap w-20 text-center">
                                 {{ editable ? '取消编辑' : '编辑内容' }}
                             </div>
@@ -105,8 +105,8 @@
                                         :class="{ 'opacity-0 scale-0': !editable }"></i>
                                 </div>
                             </template>
-                        </popover>
-                        <popover>
+                        </s-popover>
+                        <s-popover>
                             <div class="text-xl font-normal text-nowrap w-20 text-center">
                                 {{ copied ? '复制成功' : '复制内容' }}
                             </div>
@@ -120,7 +120,7 @@
                                         :class="{ 'opacity-0 scale-0': !copied }"></i>
                                 </div>
                             </template>
-                        </popover>
+                        </s-popover>
                     </div>
                     <div class="absolute group-hover:invisible visible transition right-0 top-0 mt-3 mr-3
                         text-gray-500 select-none text-xl">
@@ -131,7 +131,7 @@
                         " ref="editor" @input="resultEdit" :contenteditable="editable">{{ res }}</pre>
                 </div>
             </div>
-        </inner-container>
+        </s-container>
         <s-button success :trigger="loading" class="py-5 overflow-hidden border-2 border-gray-600 
             hover:border-transparent" @click="generate">
             <div class="h-full absolute transition-all bg-green-400/25 left-0 top-0" :class="{
@@ -152,15 +152,15 @@
 </template>
 
 <script lang="ts">
-import InnerContainer from '../../components/InnerContainer/index.vue';
+import SContainer from '../../components/SContainer/index.vue';
 import SButton from '../../components/SButton.vue';
-import Popover from '../../components/Popover.vue';
+import SPopover from '../../components/SPopover.vue';
 import type { MockData } from '../../types/mock';
 import { useGlobalDataStore } from '../../store/gloablDataStore';
 
 export default {
     components: {
-        InnerContainer, SButton, Popover
+        SContainer, SButton, SPopover
     },
     data() {
         return {
@@ -180,24 +180,41 @@ export default {
             current: global.currentRecording
         }
     },
+    mounted() {
+        this.mockData = this.global.currentRecording.data;
+        this.count = this.global.currentRecording.count;
+        this.res = this.global.currentRecording.result;
+        this.editable = false;
+    },
     watch: {
         "global.currentRecording"() {
             this.mockData = this.global.currentRecording.data;
             this.count = this.global.currentRecording.count;
             this.res = this.global.currentRecording.result;
             this.editable = false;
+            if (this.res.startsWith('[ERR]')) {
+                this.error = true;
+                this.res = this.res.substring(5);
+            }
+            else {
+                this.error = false;
+            }
         },
         mockData() {
             this.global.currentRecording.data = this.mockData;
-            this.global.saveCurrentRecording();
+            this.global.saveCurrentRecord();
         },
         res() {
-            this.global.currentRecording.result = this.res;
-            this.global.saveCurrentRecording();
+            const preffix =
+                this.error && !this.res.startsWith('[ERR]')
+                    ? '[ERR]'
+                    : '';
+            this.global.currentRecording.result = preffix + this.res;
+            this.global.saveCurrentRecord();
         },
         count() {
             this.global.currentRecording.count = this.count;
-            this.global.saveCurrentRecording();
+            this.global.saveCurrentRecord();
         }
     },
     directives: {

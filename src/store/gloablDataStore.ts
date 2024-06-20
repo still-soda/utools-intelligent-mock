@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
 import { MockData } from "../types/mock";
+import { Ref, toRaw } from "vue";
 
-export interface Recording {
+export interface Record {
     data: MockData[];
     count: number;
     result: string;
@@ -11,25 +12,25 @@ export interface Recording {
 
 export const useGlobalDataStore = defineStore("globalData", {
     state: () => ({
-        currentRecording: {} as Recording,
+        currentRecording: {} as Ref<Record>,
     }),
     actions: {
-        switchRecording(id: string) {
-            const recording = window.data.getRecordings().find((recording) => recording.id === id);
-            this.saveCurrentRecording();
+        switchRecord(id: string) {
+            const recording = window.data.getRecords().find((recording) => recording.id === id);
+            this.saveCurrentRecord();
             if (recording) {
                 console.log(recording);
                 this.currentRecording = recording;
             }
         },
-        saveCurrentRecording() {
-            window.data.setRecordings(this.currentRecording);
+        saveCurrentRecord() {
+            window.data.setRecords(toRaw(this.currentRecording));
         },
-        recordingNameList() {
-            return window.data.getRecordings().map(item => item.name);
+        recordNameList() {
+            return window.data.getRecords().map(item => item.name);
         },
-        removeRecording(id: string) {
-            window.data.removeRecording(id);
+        removeRecord(id: string) {
+            window.data.removeRecord(id);
         }
     }
 })

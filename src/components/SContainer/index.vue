@@ -9,6 +9,6 @@
 
 <script lang="ts">
 export default {
-    name: 'inner-container',
+    name: 's-container',
 }
 </script>

@@ -6,20 +6,27 @@
             <i class="fas fa-chevron-left mr-1"></i>
             返回
         </s-button>
-        <inner-container>
+        <s-container>
             <div class="space-y-4">
                 <span class="w-full justify-between items-center flex">
                     <span>API 设置</span>
-                    <popover position="right">
+                    <s-popover position="right">
                         <template #trigger>
                             <span class="hover:text-green-400 hover:cursor-pointer transition">
                                 <i class="far fa-question-circle mr-4"></i>
                             </span>
                         </template>
-                        <div class="w-64 text-xl text-center font-normal">
-                            详情见百度智能云API文档
+                        <div class="w-64 text-lg text-center font-normal">
+                            <i>API Key</i> 和 <i>Secret Key</i>的获取是完全免费的，包括使用的Api也是免费的👍👍👍
+                            <br>
+                            只需要按照
+                            <s-link href="https://ai.baidu.com/ai-doc/REFERENCE/Ck3dwjgn3">
+                                <i class="fas fa-book-atlas"></i>
+                                百度智能云AI接入指南
+                            </s-link>
+                            的步骤获取即可~~~
                         </div>
-                    </popover>
+                    </s-popover>
                 </span>
                 <div class="flex space-x-6 items-center" v-for="item, idx in appDataList" :key="idx">
                     <span class="w-[20%] min-w-28 text-end text-xl">{{ item.name }}</span>
@@ -40,19 +47,20 @@
                     </span>
                 </s-button>
             </div>
-        </inner-container>
+        </s-container>
     </div>
 </template>
 
 <script lang="ts">
-import InnerContainer from '../../components/InnerContainer/index.vue';
+import SContainer from '../../components/SContainer/index.vue';
 import SButton from '../../components/SButton.vue';
-import Popover from '../../components/Popover.vue';
+import SPopover from '../../components/SPopover.vue';
+import SLink from '../../components/SLink.vue';
 
 export default {
     name: 'option-view',
     components: {
-        InnerContainer, SButton, Popover
+        SContainer, SButton, SPopover, SLink
     },
     data() {
         return {
@@ -65,7 +73,7 @@ export default {
         },
         save() {
             window.data.setApiData({
-                appId: this.appDataList[0].data,
+                apiKey: this.appDataList[0].data,
                 appSecret: this.appDataList[1].data
             });
 
@@ -78,13 +86,13 @@ export default {
     },
     setup() {
         const data = window.data.getApiData();
-        const { appId, appSecret } = data ?? {
-            appId: '',
+        const { apiKey, appSecret } = data ?? {
+            apiKey: '',
             appSecret: ''
         }
         return {
             appDataList: [
-                { name: 'App ID', data: appId },
+                { name: 'API Key', data: apiKey },
                 { name: 'Secret Key', data: appSecret },
             ],
         }

@@ -3,17 +3,15 @@
         <div class="peer/slot w-fit" ref="trigger">
             <slot name="trigger"></slot>
         </div>
-        <div class="peer-hover/slot:opacity-100 absolute opacity-0 transition
-            z-40 peer-hover/slot:pointer-events-auto pointer-events-none flex 
-            items-center justify-center w-fit peer-hover/slot:scale-x-100 scale-x-50" :style="{
+        <div class="peer-hover/slot:opacity-100 hover:opacity-100 absolute opacity-0 transition
+            z-40 peer-hover/slot:pointer-events-auto hover:pointer-events-auto pointer-events-none flex 
+            items-center justify-center w-fit peer-hover/slot:scale-x-100 hover:scale-x-100 scale-x-50
+            pt-2" :style="{
                 'transform': `
-                    translate(
-                        ${-contentWidth / 2 + triggerWidth / 2}px,
-                        5px
-                    )  
+                    translate(${-contentWidth / 2 + triggerWidth / 2}px, -3px)  
                     scaleX(var(--tw-scale-x))`
             }">
-            <div class="absolute top-0 rounded-md size-5 rotate-45 bg-gray-500" :style="{
+            <div class="absolute top-0 rounded-md size-5 mt-2 rotate-45 bg-gray-500" :style="{
                 'left': left
             }"></div>
             <div ref="content" class="bg-gray-500 rounded-xl p-3 translate-y-1">
@@ -25,7 +23,7 @@
 
 <script lang="ts">
 export default {
-    name: 'popover',
+    name: 's-popover',
     data() {
         return {
             contentWidth: 0,

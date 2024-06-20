@@ -22,13 +22,13 @@
                 <div v-for="item in option.data" :key="item.key" class="text-xl text-gray-400
                     [&_span]:hover:text-yellow-400 hover:cursor-pointer transition py-2 flex 
                     items-center justify-between relative group" @click="select(item)">
-                    <span class="transition overflow-hidden outline-none" v-focus="item.editable" :class="{
+                    <input class="transition overflow-hidden outline-none bg-transparent" :class="{
                         'hover:cursor-text': item.editable,
                         'text-yellow-400': item.key === selected,
-                        'bg-gray-600': item.editable
-                    }" :contenteditable="item.editable" @input="rename(item.key)">
-                        {{ item.name }}
-                    </span>
+                        'bg-gray-600': item.editable,
+                        'pointer-events-none': !item.editable,
+                    }" :contenteditable="item.editable" :disabled="!item.editable" @input="rename(item.id)"
+                        :ref="item.id" v-model="item.name" />
                     <div class="absolute right-0 group-hover:[&_i]:opacity-100 [&_i]:opacity-0 [&_span]:transition transition 
                         space-x-3 shrink-0 bg-gradient-to-l from-gray-900 to-transparent pl-2 group-hover:bg-gray-900"
                         :class="{
@@ -126,11 +126,18 @@ export default {
         this.selected = this.options.mock.data[0]?.key || Symbol();
     },
     methods: {
-        rename(key: symbol) {
-            const content = (this.$refs as any)[key].innerText;
-            this.options.mock.data
-                .find(item => item.key === key)!
-                .name = content;
+        rename(id: string) {
+            const content =
+                this.options.mock.data
+                    .find(item => item.id === id)!
+                    .name;
+
+            if (!content) {
+                return;
+            }
+
+            this.global.currentRecording.name = content;
+            this.global.saveCurrentRecord();
         },
         patch(type: string) {
             if (type === 'option') {
@@ -141,15 +148,16 @@ export default {
             }
         },
         append() {
-            let id = `muid-${Date.now()}`;
+            let id = `r-${Date.now()}`;
             let suffix = 0;
 
             const existId = (id: string) => {
-                return this.options.mock.data.some(item => item.id === id);
+                return this.options.mock.data
+                    .some(item => item.id === id);
             }
 
             while (existId(id)) {
-                id = `muid-${Date.now()}-${suffix++}`;
+                id = `r-${Date.now()}-${suffix++}`;
             }
 
             this.options.mock.data
@@ -160,7 +168,7 @@ export default {
                     id
                 });
 
-            window.data.setRecordings({
+            window.data.setRecords({
                 data: [],
                 id: id,
                 count: 1,
@@ -172,11 +180,11 @@ export default {
             const item = this.options.mock;
             item.data = item.data.filter(item => item.key !== data.key);
 
-            this.global.removeRecording(data.id);
+            this.global.removeRecord(data.id);
         },
         select(item: MockData) {
             this.selected = item.key
-            this.global.switchRecording(item.id);
+            this.global.switchRecord(item.id);
         }
     },
     setup() {
@@ -185,8 +193,10 @@ export default {
         }
     },
     created() {
-        const mockList = window.data.getRecordings();
-        console.log(mockList);
+        const mockList = window.data.getRecords();
+        if (mockList.length > 0) {
+            this.global.currentRecording = mockList[0];
+        }
         this.options.mock.data
             .push(
                 ...mockList.map(item => ({

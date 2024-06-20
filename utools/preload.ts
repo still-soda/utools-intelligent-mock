@@ -1,18 +1,17 @@
-import { Recording } from "../src/store/gloablDataStore";
+import { Record } from "../src/store/gloablDataStore";
 
 let accessToken = <string | null> null;
-const SYMBOL_ID = 'im-230220-544912';
+const SYMBOL_ID = 'im-2u30220-5b44915';
 
 function getApiData() {
-    const appId = utools.dbStorage.getItem('appId');
-    const appSecret = utools.dbStorage.getItem('appSecret');
-    if (!appId || !appSecret) {
-        return null;
-    }
-    return {
-        appId,
-        appSecret
-    }
+    type ApiData = { 
+        apiKey: string
+        appSecret: string 
+    };
+    const id = `${SYMBOL_ID}-api-data`;
+    const data: ApiData = utools.dbStorage.getItem(id);
+
+    return data || null;
 }
 
 function getAccessToken() {
@@ -21,17 +20,18 @@ function getAccessToken() {
     }
 
     const apiData = getApiData();
+    
     if (!apiData) {
         return null;
     }
     
-    const { appId, appSecret } = apiData;
-
+    const { apiKey, appSecret } = apiData;
     const data = {
         grant_type: 'client_credentials',
-        client_id: appId,
+        client_id: apiKey,
         client_secret: appSecret
     };
+
     const entries = Object.entries(data);
     
     const url = 
@@ -41,9 +41,7 @@ function getAccessToken() {
 
     return fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
             })
             .then(res => {
                 return res.json();
@@ -62,19 +60,23 @@ window.data = {
 
     async requestApi({ data, count }) {
         const accessToken = await getAccessToken();
-        if (!accessToken) 
+
+        if (!accessToken) {
             return '[ERR]获取AccessToken失败，请确保您的网络连接正常，\
-                    AccessKey和SecretKey正确且未被禁用。';
-        const url = `https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/yi_34b_chat?\
-                     access_token=${accessToken}`;
+                    ApiKey和SecretKey正确且未被禁用。';
+        }
+
+        const url = 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/yi_34b_chat?' +
+                    `access_token=${accessToken}`;
 
         const prompt = 
-            '#请你扮演我的JSON mock生成助理；#生成的数据最外层是一个Array；\
-             #我的提示将会遵循以下格式：\
-             [format]: 数据结构（每条数据的描述格式为："数据名称"<数据格式>(数据描述)）[count]: 需要生成mock的数量；\
-             #请你务必将产生的JSON mock包含在[BEGIN][END]块中；\
-             #你的回答只需要给出[BEGIN][END]的部分即可，不需要其他的回答。\
-             现在请你根据以下提示生成：[target]:{' 
+            '#请你扮演我的JSON mock生成助理;' +
+            '#生成的数据最外层是一个Array;' +
+            '#我的提示将会遵循以下格式:' +
+            '[format]:数据结构（每条数据的描述格式为："数据名称"<数据格式>(数据描述)[count]:需要生成mock的数量;' +
+            '#请你务必将产生的JSON mock包含在[BEGIN][END]块中;' +
+            '#你的回答只需要给出[BEGIN][END]的部分即可，不需要其他的回答;' +
+            '现在请你根据以下提示生成：[target]:{' 
             + 
             data.map(i => `"${i.name}"<${i.type}>(${i.desc})`)
                 .join('') 
@@ -87,19 +89,24 @@ window.data = {
                 content: prompt
             }]
         };
+
+        console.log({
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
         
         const res = await 
             fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
             })
             .then(res => {
                 return res.json();
             })
             .then(data => {
+                console.log('data:', data)
                 return <string>data.result;
             })
             .catch(err => {
@@ -120,64 +127,82 @@ window.data = {
             || matchRegex(res, /```json([\s\S]*?)```/g)
             || 'empty';
     },
-    setApiData({ appId, appSecret }) {
-        utools.dbStorage.setItem('appId', appId);
-        utools.dbStorage.setItem('appSecret', appSecret);
-    },
-    getRecordings() {
-        const id = SYMBOL_ID + 'recordingKeys';
+    setApiData({ apiKey, appSecret }) {
+        const id = `${SYMBOL_ID}-api-data`;
+        accessToken = null;
 
-        const recordingKeys = utools.dbStorage.getItem(id);
-        if (!recordingKeys) {
+        utools.dbStorage.setItem(id, { apiKey, appSecret });
+    },
+    getRecords() {
+        const id = `${SYMBOL_ID}-record-keys`;
+        const recordKeys = utools.dbStorage.getItem(id) as string[];
+
+        console.log('recordKeys:', recordKeys);
+
+        if (!recordKeys) {
             utools.dbStorage.setItem(id, []);
         }
-
-        const keys = recordingKeys as string[];
         
-        return keys
+        return recordKeys
             .map(key => {
-                const recording: Recording = utools.dbStorage.getItem(key);
-                return recording ?? null;
+                const record: Record = utools.dbStorage.getItem(key);
+                console.log('key:', key);
+                console.log('record:', record)
+                return record ?? null;
             })
-            .filter(recording => {
-                recording
-            }) as Recording[];
+            .filter(record => {
+                return record;
+            }) as Record[];
     },
-    setRecordings(...recordings: Recording[]) {
-        const id = SYMBOL_ID + 'recordingKeys';
-
+    setRecords(...records: Record[]) {
+        const id = `${SYMBOL_ID}-record-keys`;
         const keys: string[] = utools.dbStorage.getItem(id) ?? [];
 
-        recordings.forEach(item => {
-            keys.includes(item.id) && keys.push(item.id);
+        records.forEach(record => {
+            const recordId = `${SYMBOL_ID}-${record.id}`;
+            keys.includes(recordId) || keys.push(recordId);
         });
 
         utools.dbStorage.setItem(id, keys);     
         
-        function deepCopy(obj: Recording) {
+        function deepCopy(obj: Record) {
             return JSON.parse(JSON.stringify(obj));
         }
         
-        recordings.forEach(recording => {
+        records.forEach(record => {
+            console.log(record);
+            const recordId = 
+                record.id.startsWith(SYMBOL_ID) ?
+                    record.id : 
+                    `${SYMBOL_ID}-${record.id}`;
             utools.dbStorage.setItem(
-                recording.id, 
-                deepCopy(recording)
+                recordId, 
+                deepCopy(record)
             );
         });
     },
-    removeRecording(id: string) {
-        const recordingKeys = utools.dbStorage.getItem('recordingKeys');
-        if (!recordingKeys) {
+    removeRecord(recordId: string) {
+        const id = `${SYMBOL_ID}-record-keys`;
+        const recordKeys = utools.dbStorage.getItem(id);
+        
+        if (!recordKeys) {
             return;
         }
 
-        const keys = <string[]> recordingKeys;
-        const index = keys.indexOf(id);
+        recordId = `${SYMBOL_ID}-${recordId}`;
+
+        const keys = <string[]> recordKeys;
+        const index = keys.indexOf(recordId);
+
         if (index > -1) {
             keys.splice(index, 1);
         }
         
-        utools.dbStorage.setItem('recordingKeys', keys);
-        utools.dbStorage.removeItem(id);
+        utools.dbStorage.setItem(id, keys);
+        utools.dbStorage.removeItem(recordId);
     },
+}
+
+window.openUrl = (url: string) => {
+    utools.shellOpenExternal(url);
 }
